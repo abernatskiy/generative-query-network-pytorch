@@ -1,10 +1,14 @@
-"""
-run-gqn.py
+#!/usr/bin/env python3
+
+'''run-gqn.py
 
 Script to train the a GQN on the Shepard-Metzler dataset
 in accordance to the hyperparameter settings described in
 the supplementary materials of the paper.
-"""
+'''
+import selectgpu
+selectgpu.selectGPU(1)
+
 import random
 import math
 from argparse import ArgumentParser
@@ -29,13 +33,12 @@ from gqn import GenerativeQueryNetwork, partition, Annealer
 from shepardmetzler import ShepardMetzler
 #from placeholder import PlaceholderData as ShepardMetzler
 
-cuda = torch.cuda.is_available()
-device = torch.device("cuda:0" if cuda else "cpu")
+device = torch.device("cuda:0") # selectgpu ensures that cuda:0 can be used
 
 # Random seeding
 random.seed(99)
 torch.manual_seed(99)
-if cuda: torch.cuda.manual_seed(99)
+torch.cuda.manual_seed(99)
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 
@@ -64,7 +67,7 @@ if __name__ == '__main__':
 	train_dataset = ShepardMetzler(root_dir=args.data_dir, fraction=args.fraction)
 	valid_dataset = ShepardMetzler(root_dir=args.data_dir, fraction=args.fraction, train=False)
 
-	kwargs = {'num_workers': args.workers, 'pin_memory': True} if cuda else {}
+	kwargs = {'num_workers': args.workers, 'pin_memory': True}
 	train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, **kwargs)
 	valid_loader = DataLoader(valid_dataset, batch_size=args.batch_size, shuffle=True, **kwargs)
 
@@ -112,9 +115,9 @@ if __name__ == '__main__':
 	ProgressBar().attach(trainer, metric_names=metric_names)
 
 	# Model checkpointing
-	checkpoint_handler = ModelCheckpoint("./", "checkpoint", save_interval=1, n_saved=3,
-	                                     require_empty=False)
-	trainer.add_event_handler(event_name=Events.EPOCH_COMPLETED, handler=checkpoint_handler,
+	checkpoint_handler = ModelCheckpoint('./checkpoints', 'state', n_saved=10, create_dir=True, require_empty=False)
+
+	trainer.add_event_handler(event_name=Events.EPOCH_COMPLETED(every=1), handler=checkpoint_handler,
 	                          to_save={'model': model.state_dict, 'optimizer': optimizer.state_dict,
 	                                   'annealers': (sigma_scheme.data, mu_scheme.data)})
 
