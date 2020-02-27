@@ -33,7 +33,7 @@ from gqn import GenerativeQueryNetwork, partition, Annealer
 from shepardmetzler import ShepardMetzler
 #from placeholder import PlaceholderData as ShepardMetzler
 
-device = torch.device("cuda:0") # selectgpu ensures that cuda:0 can be used
+device = torch.device('cuda:0') # selectgpu ensures that cuda:0 can be used
 
 # Random seeding
 random.seed(99)
@@ -46,8 +46,8 @@ if __name__ == '__main__':
 	parser = ArgumentParser(description='Generative Query Network on Shepard Metzler Example')
 	parser.add_argument('--n_epochs', type=int, default=200, help='number of epochs run (default: 200)')
 	parser.add_argument('--batch_size', type=int, default=1, help='multiple of batch size (default: 1)')
-	parser.add_argument('--data_dir', type=str, help='location of data', default="train")
-	parser.add_argument('--log_dir', type=str, help='location of logging', default="log")
+	parser.add_argument('--data_dir', type=str, help='location of data', default='train')
+	parser.add_argument('--log_dir', type=str, help='location of logging', default='log')
 	parser.add_argument('--fraction', type=float, help='how much of the data to use', default=1.0)
 	parser.add_argument('--workers', type=int, help='number of data loading workers', default=4)
 	parser.add_argument('--data_parallel', type=bool, help='whether to parallelise based on data (default: False)', default=False)
@@ -101,17 +101,17 @@ if __name__ == '__main__':
 			mu = next(mu_scheme)
 			i = engine.state.iteration
 			for group in optimizer.param_groups:
-				group["lr"] = mu * math.sqrt(1 - 0.999 ** i) / (1 - 0.9 ** i)
+				group['lr'] = mu * math.sqrt(1 - 0.999 ** i) / (1 - 0.9 ** i)
 
-		return {"elbo": elbo.item(), "kl": kl_divergence.item(), "sigma": sigma, "mu": mu}
+		return {'elbo': elbo.item(), 'kl': kl_divergence.item(), 'sigma': sigma, 'mu': mu}
 
 	# Trainer and metrics
 	trainer = Engine(step)
-	metric_names = ["elbo", "kl", "sigma", "mu"]
-	RunningAverage(output_transform=lambda x: x["elbo"]).attach(trainer, "elbo")
-	RunningAverage(output_transform=lambda x: x["kl"]).attach(trainer, "kl")
-	RunningAverage(output_transform=lambda x: x["sigma"]).attach(trainer, "sigma")
-	RunningAverage(output_transform=lambda x: x["mu"]).attach(trainer, "mu")
+	metric_names = ['elbo', 'kl', 'sigma', 'mu']
+	RunningAverage(output_transform=lambda x: x['elbo']).attach(trainer, 'elbo')
+	RunningAverage(output_transform=lambda x: x['kl']).attach(trainer, 'kl')
+	RunningAverage(output_transform=lambda x: x['sigma']).attach(trainer, 'sigma')
+	RunningAverage(output_transform=lambda x: x['mu']).attach(trainer, 'mu')
 	ProgressBar().attach(trainer, metric_names=metric_names)
 
 	# Model checkpointing
@@ -130,7 +130,7 @@ if __name__ == '__main__':
 	@trainer.on(Events.ITERATION_COMPLETED)
 	def log_metrics(engine):
 		for key, value in engine.state.metrics.items():
-			writer.add_scalar("training/{}".format(key), value, engine.state.iteration)
+			writer.add_scalar('training/{}'.format(key), value, engine.state.iteration)
 
 	@trainer.on(Events.EPOCH_COMPLETED)
 	def save_images(engine):
@@ -147,8 +147,8 @@ if __name__ == '__main__':
 			x_mu = x_mu.detach().cpu().float()
 			r = r.detach().cpu().float()
 
-			writer.add_image("representation", make_grid(r), engine.state.epoch)
-			writer.add_image("reconstruction", make_grid(x_mu), engine.state.epoch)
+			writer.add_image('representation', make_grid(r), engine.state.epoch)
+			writer.add_image('reconstruction', make_grid(x_mu), engine.state.epoch)
 
 	@trainer.on(Events.EPOCH_COMPLETED)
 	def validate(engine):
@@ -170,8 +170,8 @@ if __name__ == '__main__':
 			# Evidence lower bound
 			elbo = likelihood - kl_divergence
 
-			writer.add_scalar("validation/elbo", elbo.item(), engine.state.epoch)
-			writer.add_scalar("validation/kl", kl_divergence.item(), engine.state.epoch)
+			writer.add_scalar('validation/elbo', elbo.item(), engine.state.epoch)
+			writer.add_scalar('validation/kl', kl_divergence.item(), engine.state.epoch)
 
 	@trainer.on(Events.EXCEPTION_RAISED)
 	def handle_exception(engine, e):

@@ -5,9 +5,9 @@ from torch.distributions import Normal, kl_divergence
 
 
 class BaseAttention(nn.Module):
-	"""
+	'''
 	No attention module.
-	"""
+	'''
 	def __init__(self, h_dim, x_dim):
 		super(BaseAttention, self).__init__()
 		self.h_dim = h_dim
@@ -23,9 +23,9 @@ class BaseAttention(nn.Module):
 
 class FilterBankAttention(BaseAttention):
 	def __init__(self, h_dim, x_dim):
-		"""
+		'''
 		Filter bank attention mechanism described in the paper.
-		"""
+		'''
 		super(FilterBankAttention, self).__init__(h_dim, x_dim)
 
 	def read(self, x, error, h):
@@ -36,14 +36,14 @@ class FilterBankAttention(BaseAttention):
 
 
 class DRAW(nn.Module):
-	"""
+	'''
 	Deep Recurrent Attentive Writer (DRAW) [Gregor 2015].
 
 	:param x_dim: size of input
 	:param h_dim: number of hidden neurons
 	:param z_dim: number of latent neurons
 	:param T: number of recurrent layers
-	"""
+	'''
 	def __init__(self, x_dim, h_dim=256, z_dim=10, T=10, attention_module=BaseAttention):
 		super(DRAW, self).__init__()
 		self.x_dim = x_dim
@@ -109,11 +109,11 @@ class DRAW(nn.Module):
 		return [x_mu, kl]
 
 	def sample(self, z=None):
-		"""
+		'''
 		Generate a sample from the data distribution.
 
 		:param z: latent code, otherwise sample from prior
-		"""
+		'''
 		z = self.prior.sample() if z is None else z
 		batch_size = z.size(0)
 
@@ -130,7 +130,7 @@ class DRAW(nn.Module):
 
 
 class Conv2dLSTMCell(nn.Module):
-	"""
+	'''
 	2d convolutional long short-term memory (LSTM) cell.
 	Functionally equivalent to nn.LSTMCell with the
 	difference being that nn.Kinear layers are replaced
@@ -141,7 +141,7 @@ class Conv2dLSTMCell(nn.Module):
 	:param kernel_size: size of image kernel
 	:param stride: length of kernel stride
 	:param padding: number of pixels to pad with
-	"""
+	'''
 	def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1):
 		super(Conv2dLSTMCell, self).__init__()
 		self.in_channels = in_channels
@@ -157,13 +157,13 @@ class Conv2dLSTMCell(nn.Module):
 		self.transform = nn.Conv2d(out_channels, in_channels, **kwargs)
 
 	def forward(self, input, states):
-		"""
+		'''
 		Send input through the cell.
 
 		:param input: input to send through
 		:param states: (hidden, cell) pair of internal state
 		:return new (hidden, cell) pair
-		"""
+		'''
 		(hidden, cell) = states
 
 		input = input + self.transform(hidden)
@@ -181,9 +181,9 @@ class Conv2dLSTMCell(nn.Module):
 
 
 class ConvolutionalDRAW(nn.Module):
-	"""
+	'''
 	Convolutional DRAW model described in
-	"Towards Conceptual Compression" [Gregor 2016].
+	'Towards Conceptual Compression' [Gregor 2016].
 	The model consists of a autoregressive density
 	estimator using a recurrent convolutional network.
 
@@ -192,7 +192,7 @@ class ConvolutionalDRAW(nn.Module):
 	:param h_dim: number of hidden channels
 	:param z_dim: number of channels in latent variable
 	:param T: number of recurrent layers
-	"""
+	'''
 	def __init__(self, x_dim, x_shape=(32, 32), h_dim=256, z_dim=10, T=10):
 		super(ConvolutionalDRAW, self).__init__()
 		self.x_dim = x_dim
@@ -261,12 +261,12 @@ class ConvolutionalDRAW(nn.Module):
 		return [canvas, kl]
 
 	def sample(self, x):
-		"""
+		'''
 		Sample from the prior to generate a new
 		datapoint.
 
 		:param x: tensor representing shape of sample
-		"""
+		'''
 		h, w = self.x_shape
 		batch_size = x.size(0)
 

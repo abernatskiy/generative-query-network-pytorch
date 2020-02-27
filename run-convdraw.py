@@ -11,21 +11,21 @@ from torchvision.utils import save_image
 
 from draw import ConvolutionalDRAW
 cuda = torch.cuda.is_available()
-device = torch.device("cuda:0" if cuda else "cpu")
+device = torch.device('cuda:0' if cuda else 'cpu')
 
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='ConvolutionalDRAW with MNIST/SVHN Example')
 	parser.add_argument('--epochs', type=int, default=100, help='number of epochs to train (default: 100)')
-	parser.add_argument('--data_dir', type=str, help='location of training data', default="./train")
+	parser.add_argument('--data_dir', type=str, help='location of training data', default='./train')
 	parser.add_argument('--batch_size', type=int, default=128, help='size of batch (default: 128)')
-	parser.add_argument('--dataset', type=str, default="MNIST", help='dataset to use (default: MNIST)')
+	parser.add_argument('--dataset', type=str, default='MNIST', help='dataset to use (default: MNIST)')
 	parser.add_argument('--workers', type=int, help='number of data loading workers', default=2)
 	parser.add_argument('--data_parallel', type=bool, help='whether to parallelise based on data (default: False)', default=False)
 
 	args = parser.parse_args()
 
-	if args.dataset == "MNIST":
+	if args.dataset == 'MNIST':
 		mean, std = 0, 1
 		transform = transforms.Compose([
 		    transforms.ToTensor(),
@@ -37,13 +37,13 @@ if __name__ == '__main__':
 		output_activation = torch.sigmoid
 		x_dim, x_shape = 1, (28, 28)
 
-	elif args.dataset == "SVHN":
+	elif args.dataset == 'SVHN':
 		mean, std = (0.4376, 0.4437, 0.4728), (0.198, 0.201, 0.197)
 		transform = transforms.Compose([
 		    transforms.ToTensor(),
 		    transforms.Normalize(mean=mean, std=std)
 		])
-		dataset = SVHN(root=args.data_dir, split="train", download=True, transform=transform)
+		dataset = SVHN(root=args.data_dir, split='train', download=True, transform=transform)
 		loss = nn.MSELoss(reduce=False)
 		output_activation = lambda x: x
 		x_dim, x_shape = 3, (32, 32)
@@ -78,7 +78,7 @@ if __name__ == '__main__':
 			scheduler.step()
 
 			if epoch % 1 == 0:
-				print("Loss at step {}: {}".format(epoch, elbo.item()))
+				print('Loss at step {}: {}'.format(epoch, elbo.item()))
 
 				# Not sustainable if not dataparallel
 				x_sample = model.module.sample(args.batch_size)
@@ -87,8 +87,8 @@ if __name__ == '__main__':
 				x_sample = (x_sample - mean)/std
 				x_hat = (x_hat - mean)/std
 
-				save_image(x_hat, "reconstruction-{}.jpg".format(epoch))
-				save_image(x_sample, "sample-{}.jpg".format(epoch))
+				save_image(x_hat, 'reconstruction-{}.jpg'.format(epoch))
+				save_image(x_sample, 'sample-{}.jpg'.format(epoch))
 
 			if epoch % 10 == 0:
-				torch.save(model, "model-{}.pt".format(epoch))
+				torch.save(model, 'model-{}.pt'.format(epoch))

@@ -3,10 +3,10 @@ from torch.utils.data import Dataset
 
 
 class PlaceholderData(Dataset):
-	"""
+	'''
 	Random placeholder dataset for testing
 	training loop without loading actual data.
-	"""
+	'''
 	def __init__(self, *args, **kwargs):
 		super(PlaceholderData, self).__init__()
 

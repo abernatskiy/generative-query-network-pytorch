@@ -1,4 +1,4 @@
-"""
+'''
 The inference-generator architecture is conceptually
 similar to the encoder-decoder pair seen in variational
 autoencoders. The difference here is that the model
@@ -7,7 +7,7 @@ using convolutional and recurrent networks.
 
 Additionally, a representation vector is shared between
 the networks.
-"""
+'''
 SCALE = 4 # Scale of image generation process
 
 
@@ -18,7 +18,7 @@ from torch.distributions import Normal, kl_divergence
 
 
 class Conv2dLSTMCell(nn.Module):
-	"""
+	'''
 	2d convolutional long short-term memory (LSTM) cell.
 	Functionally equivalent to nn.LSTMCell with the
 	difference being that nn.Kinear layers are replaced
@@ -29,7 +29,7 @@ class Conv2dLSTMCell(nn.Module):
 	:param kernel_size: size of image kernel
 	:param stride: length of kernel stride
 	:param padding: number of pixels to pad with
-	"""
+	'''
 	def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1):
 		super(Conv2dLSTMCell, self).__init__()
 		self.in_channels = in_channels
@@ -45,13 +45,13 @@ class Conv2dLSTMCell(nn.Module):
 		self.transform = nn.Conv2d(out_channels, in_channels, **kwargs)
 
 	def forward(self, input, states):
-		"""
+		'''
 		Send input through the cell.
 
 		:param input: input to send through
 		:param states: (hidden, cell) pair of internal state
 		:return new (hidden, cell) pair
-		"""
+		'''
 		(hidden, cell) = states
 
 		input = input + self.transform(hidden)
@@ -69,7 +69,7 @@ class Conv2dLSTMCell(nn.Module):
 
 
 class GeneratorNetwork(nn.Module):
-	"""
+	'''
 	Network similar to a convolutional variational
 	autoencoder that refines the generated image
 	over a number of iterations.
@@ -81,7 +81,7 @@ class GeneratorNetwork(nn.Module):
 	:param h_dim: hidden channels in LSTM
 	:param L: number of density refinements
 	:param share: whether to share cores across refinements
-	"""
+	'''
 	def __init__(self, x_dim, v_dim, r_dim, z_dim=64, h_dim=128, L=12, share=True):
 		super(GeneratorNetwork, self).__init__()
 		self.L = L
@@ -112,7 +112,7 @@ class GeneratorNetwork(nn.Module):
 		self.downsample = nn.Conv2d(x_dim, x_dim, kernel_size=SCALE, stride=SCALE, padding=0, bias=False)
 
 	def forward(self, x, v, r):
-		"""
+		'''
 		Attempt to reconstruct x with corresponding
 		viewpoint v and context representation r.
 
@@ -120,7 +120,7 @@ class GeneratorNetwork(nn.Module):
 		:param v: viewpoint of image
 		:param r: representation for image
 		:return reconstruction of x and kl-divergence
-		"""
+		'''
 		batch_size, _, h, w = x.shape
 		kl = 0
 
@@ -171,14 +171,14 @@ class GeneratorNetwork(nn.Module):
 		return torch.sigmoid(x_mu), kl
 
 	def sample(self, x_shape, v, r):
-		"""
+		'''
 		Sample from the prior distribution to generate
 		a new image given a viewpoint and representation
 
 		:param x_shape: (height, width) of image
 		:param v: viewpoint
 		:param r: representation (context)
-		"""
+		'''
 		h, w = x_shape
 		batch_size = v.size(0)
 

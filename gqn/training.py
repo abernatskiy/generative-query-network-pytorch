@@ -11,7 +11,7 @@ class Annealer(object):
 		self.recent = init
 
 	def __repr__(self):
-		return {"init": self.init, "delta": self.delta, "steps": self.steps, "s": self.s}
+		return {'init': self.init, 'delta': self.delta, 'steps': self.steps, 's': self.s}
 
 	def __iter__(self):
 		return self
@@ -24,17 +24,17 @@ class Annealer(object):
 
 
 def partition(images, viewpoints):
-	"""
+	'''
 	Partition batch into context and query sets.
 	:param images
 	:param viewpoints
 	:return: context images, context viewpoint, query image, query viewpoint
-	"""
+	'''
 	# Maximum number of context points to use
 	_, b, m, *x_dims = images.shape
 	_, b, m, *v_dims = viewpoints.shape
 
-	# "Squeeze" the batch dimension
+	# 'Squeeze' the batch dimension
 	images = images.view((-1, m, *x_dims))
 	viewpoints = viewpoints.view((-1, m, *v_dims))
 

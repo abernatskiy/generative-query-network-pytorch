@@ -5,7 +5,7 @@ import torch.nn.functional as F
 
 class TowerRepresentation(nn.Module):
 	def __init__(self, n_channels, v_dim, r_dim=256, pool=True):
-		"""
+		'''
 		Network that generates a condensed representation
 		vector from a joint input of image and viewpoint.
 
@@ -15,7 +15,7 @@ class TowerRepresentation(nn.Module):
 		:param v_dim: dimensions of the viewpoint vector
 		:param r_dim: dimensions of representation
 		:param pool: whether to pool representation
-		"""
+		'''
 		super(TowerRepresentation, self).__init__()
 		# Final representation size
 		self.r_dim = k = r_dim
@@ -34,13 +34,13 @@ class TowerRepresentation(nn.Module):
 		self.avgpool  = nn.AvgPool2d(k//16)
 
 	def forward(self, x, v):
-		"""
+		'''
 		Send an (image, viewpoint) pair into the
 		network to generate a representation
 		:param x: image
 		:param v: viewpoint (x, y, z, cos(yaw), sin(yaw), cos(pitch), sin(pitch))
 		:return: representation
-		"""
+		'''
 		# Increase dimensions
 		v = v.view(v.size(0), -1, 1, 1)
 		v = v.repeat(1, 1, self.r_dim // 16, self.r_dim // 16)
@@ -69,7 +69,7 @@ class TowerRepresentation(nn.Module):
 
 class PyramidRepresentation(nn.Module):
 	def __init__(self, n_channels, v_dim, r_dim=256):
-		"""
+		'''
 		Network that generates a condensed representation
 		vector from a joint input of image and viewpoint.
 
@@ -78,7 +78,7 @@ class PyramidRepresentation(nn.Module):
 		:param n_channels: number of color channels in input image
 		:param v_dim: dimensions of the viewpoint vector
 		:param r_dim: dimensions of representation
-		"""
+		'''
 		super(PyramidRepresentation, self).__init__()
 		# Final representation size
 		self.r_dim = k = r_dim
@@ -89,13 +89,13 @@ class PyramidRepresentation(nn.Module):
 		self.conv4 = nn.Conv2d(k//2, k, kernel_size=8, stride=8)
 
 	def forward(self, x, v):
-		"""
+		'''
 		Send an (image, viewpoint) pair into the
 		network to generate a representation
 		:param x: image
 		:param v: viewpoint (x, y, z, cos(yaw), sin(yaw), cos(pitch), sin(pitch))
 		:return: representation
-		"""
+		'''
 		# Increase dimensions
 		batch_size, _, h, w = x.shape
 

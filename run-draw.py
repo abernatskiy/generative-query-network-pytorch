@@ -11,14 +11,14 @@ from torchvision.utils import save_image
 
 from draw import DRAW
 cuda = torch.cuda.is_available()
-device = torch.device("cuda:0" if cuda else "cpu")
+device = torch.device('cuda:0' if cuda else 'cpu')
 
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='DRAW with MNIST Example')
 	parser.add_argument('--epochs', type=int, default=100, help='number of epochs to train (default: 100)')
 	parser.add_argument('--batch_size', type=int, default=64, help='size of batch (default: 64)')
-	parser.add_argument('--data_dir', type=str, help='location of training data', default="./train")
+	parser.add_argument('--data_dir', type=str, help='location of training data', default='./train')
 	parser.add_argument('--workers', type=int, help='number of data loading workers', default=2)
 	parser.add_argument('--data_parallel', type=bool, help='whether to parallelise based on data (default: False)', default=False)
 
@@ -64,7 +64,7 @@ if __name__ == '__main__':
 			scheduler.step()
 
 			if epoch % 1 == 0:
-				print("Loss at step {}: {}".format(epoch, elbo.item()))
+				print('Loss at step {}: {}'.format(epoch, elbo.item()))
 
 				# Not sustainable if not dataparallel
 				if type(model) is nn.DataParallel:
@@ -72,8 +72,8 @@ if __name__ == '__main__':
 				else:
 					x_sample = model.sample(args.batch_size)
 
-				save_image(x_hat, "reconstruction-{}.jpg".format(epoch))
-				save_image(x_sample, "sample-{}.jpg".format(epoch))
+				save_image(x_hat, 'reconstruction-{}.jpg'.format(epoch))
+				save_image(x_sample, 'sample-{}.jpg'.format(epoch))
 
 			if epoch % 10 == 0:
-				torch.save(model, "model-{}.pt".format(epoch))
+				torch.save(model, 'model-{}.pt'.format(epoch))
