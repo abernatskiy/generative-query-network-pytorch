@@ -1,17 +1,12 @@
 import random
 
-
 class Annealer(object):
 	def __init__(self, init, delta, steps):
 		self.init = init
 		self.delta = delta
 		self.steps = steps
 		self.s = 0
-		self.data = self.__repr__()
 		self.recent = init
-
-	def __repr__(self):
-		return {'init': self.init, 'delta': self.delta, 'steps': self.steps, 's': self.s}
 
 	def __iter__(self):
 		return self
@@ -22,6 +17,15 @@ class Annealer(object):
 		self.recent = value
 		return value
 
+	def state_dict(self):
+		return {'init': self.init, 'delta': self.delta, 'steps': self.steps, 's': self.s, 'recent': self.recent}
+
+	def load_state_dict(self, statedict):
+		self.init = statedict['init']
+		self.delta = statedict['delta']
+		self.steps = statedict['steps']
+		self.s = statedict['s']
+		self.recent = statedict['recent']
 
 def partition(images, viewpoints):
 	'''

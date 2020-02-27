@@ -118,8 +118,8 @@ if __name__ == '__main__':
 	checkpoint_handler = ModelCheckpoint('./checkpoints', 'state', n_saved=10, create_dir=True, require_empty=False)
 
 	trainer.add_event_handler(event_name=Events.EPOCH_COMPLETED(every=1), handler=checkpoint_handler,
-	                          to_save={'model': model.state_dict, 'optimizer': optimizer.state_dict,
-	                                   'annealers': (sigma_scheme.data, mu_scheme.data)})
+	                          to_save={'model': model, 'optimizer': optimizer,
+	                                   'sigma_annealer': sigma_scheme, 'mu_annealer': mu_scheme})
 
 	timer = Timer(average=True).attach(trainer, start=Events.EPOCH_STARTED, resume=Events.ITERATION_STARTED,
 	             pause=Events.ITERATION_COMPLETED, step=Events.ITERATION_COMPLETED)
