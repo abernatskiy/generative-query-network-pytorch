@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
 
-'''run-gqn.py
+'''
+run-gqn.py
 
 Script to train the a GQN on the Shepard-Metzler dataset
 in accordance to the hyperparameter settings described in
 the supplementary materials of the paper.
 '''
 import selectgpu
-selectgpu.selectGPU(1)
+selectgpu.selectGPU(2)
 
 import random
 import math
 from argparse import ArgumentParser
+from pathlib import Path
 
 # Torch
 import torch
@@ -30,7 +32,8 @@ from ignite.handlers import ModelCheckpoint, Timer
 from ignite.metrics import RunningAverage
 
 from gqn import GenerativeQueryNetwork, partition, Annealer
-from shepardmetzler import ShepardMetzler
+from asteroids import Asteroids
+#from shepardmetzler import ShepardMetzler
 #from placeholder import PlaceholderData as ShepardMetzler
 
 device = torch.device('cuda:0') # selectgpu ensures that cuda:0 can be used
@@ -53,9 +56,11 @@ if __name__ == '__main__':
 	parser.add_argument('--data_parallel', type=bool, help='whether to parallelise based on data (default: False)', default=False)
 	args = parser.parse_args()
 
+	rootDir = Path(args.data_dir)
+
 	# Create model and optimizer
-	model = GenerativeQueryNetwork(x_dim=3, v_dim=7, r_dim=256, h_dim=128, z_dim=64, L=8).to(device)
-	model = nn.DataParallel(model) if args.data_parallel else model
+#	model = GenerativeQueryNetwork(x_dim=3, v_dim=7, r_dim=256, h_dim=128, z_dim=64, L=8).to(device)
+	model = GenerativeQueryNetwork(x_dim=1, v_dim=5, r_dim=256, h_dim=128, z_dim=64, L=8).to(device)
 
 	optimizer = torch.optim.Adam(model.parameters(), lr=5 * 10 ** (-5))
 
@@ -64,8 +69,10 @@ if __name__ == '__main__':
 	mu_scheme = Annealer(5 * 10 ** (-6), 5 * 10 ** (-6), 1.6 * 10 ** 5)
 
 	# Load the dataset
-	train_dataset = ShepardMetzler(root_dir=args.data_dir, fraction=args.fraction)
-	valid_dataset = ShepardMetzler(root_dir=args.data_dir, fraction=args.fraction, train=False)
+	#train_dataset = ShepardMetzler(root_dir=args.data_dir, fraction=args.fraction)
+	#valid_dataset = ShepardMetzler(root_dir=args.data_dir, fraction=args.fraction, train=False)
+	train_dataset = Asteroids(rootDir, True, 20)
+	valid_dataset = Asteroids(rootDir, False, 2)
 
 	kwargs = {'num_workers': args.workers, 'pin_memory': True}
 	train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, **kwargs)
@@ -76,6 +83,7 @@ if __name__ == '__main__':
 
 		x, v = batch
 		x, v = x.to(device), v.to(device)
+
 		x, v, x_q, v_q = partition(x, v)
 
 		# Reconstruction, representation and divergence
@@ -103,6 +111,8 @@ if __name__ == '__main__':
 			for group in optimizer.param_groups:
 				group['lr'] = mu * math.sqrt(1 - 0.999 ** i) / (1 - 0.9 ** i)
 
+		print(f'e{engine.state.epoch},i{engine.state.iteration}/{engine.state.epoch_length}: elbo {elbo.item()}, kl {kl_divergence.item()}, sigma {sigma}, mu {mu}')
+
 		return {'elbo': elbo.item(), 'kl': kl_divergence.item(), 'sigma': sigma, 'mu': mu}
 
 	# Trainer and metrics
@@ -112,7 +122,7 @@ if __name__ == '__main__':
 	RunningAverage(output_transform=lambda x: x['kl']).attach(trainer, 'kl')
 	RunningAverage(output_transform=lambda x: x['sigma']).attach(trainer, 'sigma')
 	RunningAverage(output_transform=lambda x: x['mu']).attach(trainer, 'mu')
-	ProgressBar().attach(trainer, metric_names=metric_names)
+#	ProgressBar().attach(trainer, metric_names=metric_names)
 
 	# Model checkpointing
 	checkpoint_handler = ModelCheckpoint('./checkpoints', 'state', n_saved=10, create_dir=True, require_empty=False)
