@@ -48,7 +48,7 @@ class Asteroids(torch.utils.data.Dataset):
 	def __getitem__(self, idx):
 		majorChunk, minorChunk = self.getChunk(idx)
 
-		minorChunkFilePath = self.rootDir / f'chunk{majorChunk}' / f'asteroidChunk{minorChunk}.pt.gz'
+		minorChunkFilePath = self.rootDir / f'chunk{majorChunk}' / f'asteroidsChunk{minorChunk}.pt.gz'
 		with gzip.open(minorChunkFilePath, 'r') as f:
 			images, viewpoints = torch.load(f)
 
