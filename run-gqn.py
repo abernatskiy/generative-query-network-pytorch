@@ -34,7 +34,6 @@ from ignite.metrics import RunningAverage
 from gqn import GenerativeQueryNetwork, partition, Annealer
 from asteroids import Asteroids
 #from shepardmetzler import ShepardMetzler
-#from placeholder import PlaceholderData as ShepardMetzler
 
 device = torch.device('cuda:0') # selectgpu ensures that cuda:0 can be used
 
@@ -66,8 +65,8 @@ if __name__ == '__main__':
 	optimizer = torch.optim.Adam(model.parameters(), lr=5 * 10 ** (-5))
 
 	# Rate annealing schemes
-	sigma_scheme = Annealer(2.0, 0.7, 80000)
-	mu_scheme = Annealer(5 * 10 ** (-6), 5 * 10 ** (-6), 1.6 * 10 ** 5)
+	sigma_scheme = Annealer(2.0, 0.7, 2 * 10 ** 5)
+	mu_scheme = Annealer(5 * 10 ** (-4), 5 * 10 ** (-6), 1.6 * 10 ** 5)
 
 	# Load the dataset
 	#train_dataset = ShepardMetzler(root_dir=args.data_dir, fraction=args.fraction)
