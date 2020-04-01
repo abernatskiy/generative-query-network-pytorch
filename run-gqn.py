@@ -28,7 +28,7 @@ from tensorboardX import SummaryWriter
 # Ignite
 from ignite.contrib.handlers import ProgressBar
 from ignite.engine import Engine, Events
-from ignite.handlers import ModelCheckpoint, Timer
+from ignite.handlers import Checkpoint, DiskSaver, Timer
 from ignite.metrics import RunningAverage
 
 from gqn import GenerativeQueryNetwork, partition, Annealer
@@ -50,10 +50,11 @@ if __name__ == '__main__':
 	parser.add_argument('--n_epochs', type=int, default=200, help='number of epochs run (default: 200)')
 	parser.add_argument('--batch_size', type=int, default=1, help='multiple of batch size (default: 1)')
 	parser.add_argument('--data_dir', type=str, help='location of data', default='train')
-	parser.add_argument('--log_dir', type=str, help='location of logging', default='log')
+	parser.add_argument('--log_dir', type=str, help='location of logging', default='logs')
 	parser.add_argument('--fraction', type=float, help='how much of the data to use', default=1.0)
 	parser.add_argument('--workers', type=int, help='number of data loading workers', default=4)
 	parser.add_argument('--data_parallel', type=bool, help='whether to parallelise based on data (default: False)', default=False)
+	parser.add_argument('--resume_from_checkpoint', type=str, help='location of a checkpoint to resume training from (default: None)', default=None)
 	args = parser.parse_args()
 
 	rootDir = Path(args.data_dir)
@@ -125,17 +126,11 @@ if __name__ == '__main__':
 #	ProgressBar().attach(trainer, metric_names=metric_names)
 
 	# Model checkpointing
-	checkpoint_handler = ModelCheckpoint('./checkpoints', 'state', n_saved=10, create_dir=True, require_empty=False)
+	to_save = {'trainer': trainer, 'model': model, 'optimizer': optimizer, 'sigma_annealer': sigma_scheme, 'mu_annealer': mu_scheme}
+	checkpoint_handler = Checkpoint(to_save, DiskSaver('./checkpoints', create_dir=True, require_empty=False), n_saved=None)
 
-	trainer.add_event_handler(event_name=Events.EPOCH_COMPLETED(every=1), handler=checkpoint_handler,
-	                          to_save={'model': model, 'optimizer': optimizer,
-	                                   'sigma_annealer': sigma_scheme, 'mu_annealer': mu_scheme})
-
-	timer = Timer(average=True).attach(trainer, start=Events.EPOCH_STARTED, resume=Events.ITERATION_STARTED,
-	             pause=Events.ITERATION_COMPLETED, step=Events.ITERATION_COMPLETED)
-
-	# Tensorbard writer
-	writer = SummaryWriter(log_dir=args.log_dir)
+	trainer.add_event_handler(event_name=Events.EPOCH_COMPLETED(every=1), handler=checkpoint_handler)
+#	trainer.add_event_handler(event_name=Events.ITERATION_COMPLETED(every=1000), handler=checkpoint_handler)
 
 	@trainer.on(Events.ITERATION_COMPLETED)
 	def log_metrics(engine):
@@ -190,8 +185,20 @@ if __name__ == '__main__':
 		if isinstance(e, KeyboardInterrupt) and (engine.state.iteration > 1):
 			import warnings
 			warnings.warn('KeyboardInterrupt caught. Exiting gracefully.')
-			checkpoint_handler(engine, { 'model_exception': model })
+			checkpoint_handler(engine)
 		else: raise e
+
+	timer = Timer(average=True).attach(trainer, start=Events.EPOCH_STARTED, resume=Events.ITERATION_STARTED,
+	             pause=Events.ITERATION_COMPLETED, step=Events.ITERATION_COMPLETED)
+
+	# Tensorbard writer
+	writer = SummaryWriter(log_dir=args.log_dir)
+
+	if args.resume_from_checkpoint:
+		print(f'Resuming training at {args.data_dir} using checkpoint {args.resume_from_checkpoint}')
+		Checkpoint.load_objects(to_load=to_save, checkpoint=torch.load(Path(args.resume_from_checkpoint)))
+	else:
+		print(f'Training from scratch at {args.data_dir}')
 
 	trainer.run(train_loader, args.n_epochs)
 	writer.close()
